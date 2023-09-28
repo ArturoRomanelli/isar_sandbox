@@ -1,0 +1,4 @@
+enum CardTypeDto {
+  black,
+  white,
+}
