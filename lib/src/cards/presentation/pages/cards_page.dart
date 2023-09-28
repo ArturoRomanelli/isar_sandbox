@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 import '../../domain/entities/game_card.dart';
 
@@ -34,12 +36,53 @@ final cardList = [
 
 final cardWidgets = [
   ...cardList.map(
-    (card) => Card(
-      color: card.color,
-      child: Text(
-        card.contents,
-        style: TextStyle(color: card.color == Colors.black ? Colors.white : Colors.black),
-      ),
+    (card) => GameCardWidget(
+      card: card,
     ),
   ),
 ];
+
+class GameCardWidget extends HookWidget {
+  const GameCardWidget({
+    required this.card,
+    super.key,
+  });
+
+  final GameCard card;
+
+  @override
+  Widget build(BuildContext context) {
+    final rating = useState<double>(0);
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: card.color,
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          children: [
+            InkWell(
+              onTap: () {},
+              child: Text(
+                card.contents,
+                style: TextStyle(color: card.color == Colors.black ? Colors.white : Colors.black),
+              ),
+            ),
+            const Spacer(),
+            RatingBar.builder(
+              itemSize: 24,
+              itemBuilder: (context, _) => const Icon(
+                Icons.star,
+                color: Colors.amber,
+              ),
+              allowHalfRating: true,
+              initialRating: card.eval,
+              onRatingUpdate: (value) {
+                rating.value = value;
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
