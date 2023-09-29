@@ -10,7 +10,7 @@ final class CardsController extends _$CardsController {
   late CardsRepositoryInterface _repository;
 
   @override
-  GameCard build() {
+  List<GameCard> build() {
     _repository = ref.watch(cardsRepositoryProvider);
     return _repository.getCards();
   }

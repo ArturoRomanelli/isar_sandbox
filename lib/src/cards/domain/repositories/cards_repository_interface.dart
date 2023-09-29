@@ -1,18 +1,20 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../clients/local_client.dart';
 import '../../data/repositories/cards_repository.dart';
-import '../../data/sources/cards_local_source.dart';
 import '../entities/game_card.dart';
+import '../entities/game_card_form.dart';
 
 part 'cards_repository_interface.g.dart';
 
 @riverpod
 CardsRepositoryInterface cardsRepository(CardsRepositoryRef ref) {
-  final local = ref.watch(cardsLocalSourceProvider);
+  final isar = ref.watch(localDbProvider);
 
-  return CardsRepository(local);
+  return CardsRepository(isar);
 }
 
 abstract interface class CardsRepositoryInterface {
-  GameCard getCards();
+  List<GameCard> getCards();
+  GameCard saveCard(GameCardForm form);
 }
