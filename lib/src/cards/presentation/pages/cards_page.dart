@@ -5,8 +5,9 @@ import 'package:isar/isar.dart';
 import '../../../../clients/local_client.dart';
 import '../../data/models/card_dto.dart';
 import '../../domain/adapters/card_adapter.dart';
+import '../../domain/enum/card_mode.dart';
+import '../widgets/card_dialog.dart';
 import '../widgets/game_card_widget.dart';
-import '../widgets/new_card_dialog.dart';
 
 class CardsPage extends HookConsumerWidget {
   const CardsPage({super.key});
@@ -40,7 +41,10 @@ class CardsPage extends HookConsumerWidget {
           color: Colors.white,
         ),
         onPressed: () {
-          showDialog(context: context, builder: (_) => const NewCardDialog());
+          showDialog(
+            context: context,
+            builder: (_) => const CardDialog(mode: CardMode.newCard),
+          );
         },
       ),
     );
