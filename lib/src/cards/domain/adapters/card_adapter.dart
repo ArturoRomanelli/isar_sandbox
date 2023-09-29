@@ -7,6 +7,7 @@ import '../entities/game_card.dart';
 extension GameCardAdapter on CardDto {
   GameCard toEntity() {
     return GameCard(
+      id: id,
       contents: contents,
       eval: eval,
       color: switch (type) {
