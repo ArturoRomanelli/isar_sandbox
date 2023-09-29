@@ -3,6 +3,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 import '../../domain/entities/game_card.dart';
+import '../../domain/enum/card_mode.dart';
+import 'card_dialog.dart';
 
 class GameCardWidget extends HookWidget {
   const GameCardWidget({
@@ -20,29 +22,39 @@ class GameCardWidget extends HookWidget {
       color: card.color,
       child: Padding(
         padding: const EdgeInsets.all(8),
-        child: Column(
-          children: [
-            InkWell(
-              onTap: () {},
-              child: Text(
+        child: InkWell(
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (_) => CardDialog(
+                mode: CardMode.editCard,
+                description: card.contents,
+                eval: card.eval,
+                color: card.color == Colors.black ? Colours.black : Colours.white,
+              ),
+            );
+          },
+          child: Column(
+            children: [
+              Text(
                 card.contents,
                 style: TextStyle(color: card.color == Colors.black ? Colors.white : Colors.black),
               ),
-            ),
-            const Spacer(),
-            RatingBar.builder(
-              itemSize: 24,
-              itemBuilder: (context, _) => const Icon(
-                Icons.star,
-                color: Colors.amber,
+              const Spacer(),
+              RatingBar.builder(
+                itemSize: 24,
+                itemBuilder: (context, _) => const Icon(
+                  Icons.star,
+                  color: Colors.amber,
+                ),
+                allowHalfRating: true,
+                initialRating: card.eval,
+                onRatingUpdate: (value) {
+                  rating.value = value;
+                },
               ),
-              allowHalfRating: true,
-              initialRating: card.eval,
-              onRatingUpdate: (value) {
-                rating.value = value;
-              },
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
