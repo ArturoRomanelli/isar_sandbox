@@ -20,4 +20,9 @@ enum CardType {
         black => Colors.black,
         white => Colors.white,
       };
+
+  CardType get next {
+    final nextIndex = (index + 1) % CardType.values.length;
+    return CardType.values[nextIndex];
+  }
 }

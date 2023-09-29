@@ -36,7 +36,7 @@ class GameCardWidget extends HookWidget {
             children: [
               Text(
                 card.contents,
-                style: TextStyle(color: card.type.color),
+                style: TextStyle(color: card.type.next.color),
               ),
               const Spacer(),
               RatingBar.builder(
