@@ -7,13 +7,23 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../clients/local_client.dart';
 import '../../data/models/card_dto.dart';
 import '../../data/models/card_type_dto.dart';
+import '../../domain/enum/card_mode.dart';
 
 enum Colours { white, black }
 
-class NewCardDialog extends HookConsumerWidget {
-  const NewCardDialog({
+class CardDialog extends HookConsumerWidget {
+  const CardDialog({
+    required this.mode,
     super.key,
+    this.description,
+    this.eval,
+    this.color,
   });
+
+  final CardMode mode;
+  final String? description;
+  final double? eval;
+  final Colours? color;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,6 +32,12 @@ class NewCardDialog extends HookConsumerWidget {
     final formKey = useRef(GlobalKey<FormState>());
     final rating = useState<double>(0);
     final colours = useState<Colours>(Colours.white);
+
+    if (mode == CardMode.editCard) {
+      textController.text = description!;
+      rating.value = eval!;
+      colours.value = color!;
+    }
 
     String? _validation(String? value) {
       if (value == null || value.isEmpty) return 'Campo obbligatorio';
@@ -74,6 +90,7 @@ class NewCardDialog extends HookConsumerWidget {
                       Icons.star,
                       color: Colors.amber,
                     ),
+                    initialRating: rating.value,
                     allowHalfRating: true,
                     onRatingUpdate: (value) {
                       rating.value = value;
@@ -99,16 +116,41 @@ class NewCardDialog extends HookConsumerWidget {
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: ElevatedButton(
-                onPressed: () {
-                  saveCard(contents: textController.text, eval: rating.value, color: colours.value);
-                  context.pop();
-                },
-                child: const Text('Conferma'),
+            if (mode == CardMode.newCard)
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: ElevatedButton(
+                  onPressed: () {
+                    saveCard(
+                      contents: textController.text,
+                      eval: rating.value,
+                      color: colours.value,
+                    );
+                    context.pop();
+                  },
+                  child: const Text('Conferma'),
+                ),
               ),
-            ),
+            if (mode == CardMode.editCard)
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: ElevatedButton(
+                  onPressed: () {
+                    context.pop();
+                  },
+                  child: const Text('Modifica'),
+                ),
+              ),
+            if (mode == CardMode.editCard)
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: ElevatedButton(
+                  onPressed: () {
+                    context.pop();
+                  },
+                  child: const Text('Elimina'),
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.all(8),
               child: ElevatedButton(
