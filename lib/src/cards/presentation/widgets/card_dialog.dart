@@ -7,23 +7,18 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../clients/local_client.dart';
 import '../../data/models/card_dto.dart';
 import '../../data/models/card_type_dto.dart';
+import '../../domain/entities/game_card.dart';
 import '../../domain/enum/card_mode.dart';
-
-enum Colours { white, black }
 
 class CardDialog extends HookConsumerWidget {
   const CardDialog({
     required this.mode,
     super.key,
-    this.description,
-    this.eval,
-    this.color,
+    this.card,
   });
 
   final CardMode mode;
-  final String? description;
-  final double? eval;
-  final Colours? color;
+  final GameCard? card;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,12 +26,12 @@ class CardDialog extends HookConsumerWidget {
     final textController = useTextEditingController();
     final formKey = useRef(GlobalKey<FormState>());
     final rating = useState<double>(0);
-    final colours = useState<Colours>(Colours.white);
+    final colors = useState<Color>(Colors.white);
 
     if (mode == CardMode.editCard) {
-      textController.text = description!;
-      rating.value = eval!;
-      colours.value = color!;
+      textController.text = card!.contents;
+      rating.value = card!.eval;
+      colors.value = card!.color;
     }
 
     String? _validation(String? value) {
@@ -44,17 +39,20 @@ class CardDialog extends HookConsumerWidget {
       return null;
     }
 
+    // Future<void> deleteCard(){};
+
     Future<void> saveCard({
       required String contents,
       required double eval,
-      required Colours color,
+      required Color color,
     }) async {
       final newCard = CardDto(
         contents: contents,
         eval: eval,
         type: switch (color) {
-          Colours.white => CardTypeDto.white,
-          Colours.black => CardTypeDto.black
+          Colors.white => CardTypeDto.white,
+          Colors.black => CardTypeDto.black,
+          _ => throw Exception('Color not found'),
         },
       );
       await isar.writeTxn(() async {
@@ -102,17 +100,17 @@ class CardDialog extends HookConsumerWidget {
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                RadioListTile<Colours>(
+                RadioListTile<Color>(
                   title: const Text('White'),
-                  value: Colours.white,
-                  groupValue: colours.value,
-                  onChanged: (value) => colours.value = value!,
+                  value: Colors.white,
+                  groupValue: colors.value,
+                  onChanged: (value) => colors.value = value!,
                 ),
-                RadioListTile<Colours>(
+                RadioListTile<Color>(
                   title: const Text('Black'),
-                  value: Colours.black,
-                  groupValue: colours.value,
-                  onChanged: (value) => colours.value = value!,
+                  value: Colors.black,
+                  groupValue: colors.value,
+                  onChanged: (value) => colors.value = value!,
                 ),
               ],
             ),
@@ -120,12 +118,14 @@ class CardDialog extends HookConsumerWidget {
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: ElevatedButton(
-                  onPressed: () {
-                    saveCard(
+                  onPressed: () async {
+                    await saveCard(
                       contents: textController.text,
                       eval: rating.value,
-                      color: colours.value,
+                      color: colors.value,
                     );
+                    if (!context.mounted) return;
+
                     context.pop();
                   },
                   child: const Text('Conferma'),
@@ -146,6 +146,7 @@ class CardDialog extends HookConsumerWidget {
                 padding: const EdgeInsets.all(8),
                 child: ElevatedButton(
                   onPressed: () {
+                    // deleteCard();
                     context.pop();
                   },
                   child: const Text('Elimina'),

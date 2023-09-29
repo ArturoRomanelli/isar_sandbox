@@ -28,9 +28,7 @@ class GameCardWidget extends HookWidget {
               context: context,
               builder: (_) => CardDialog(
                 mode: CardMode.editCard,
-                description: card.contents,
-                eval: card.eval,
-                color: card.color == Colors.black ? Colours.black : Colours.white,
+                card: card,
               ),
             );
           },
