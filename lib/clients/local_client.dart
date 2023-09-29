@@ -4,6 +4,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'local_client.g.dart';
 
 @riverpod
-Future<Isar> localDb(LocalDbRef ref) async {
+Isar localDb(LocalDbRef ref) {
   throw UnimplementedError('This provider must be overridden');
 }
