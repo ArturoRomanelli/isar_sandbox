@@ -14,7 +14,11 @@ final class CardsRepository implements CardsRepositoryInterface {
 
   @override
   List<GameCard> getCards() {
-    throw UnimplementedError('TODO: add repository logic in here');
+    final query = db.cardDtos.where();
+    final result = query.findAllSync();
+    return [
+      for (final r in result) r.toEntity(r.id),
+    ];
   }
 
   @override
@@ -24,7 +28,7 @@ final class CardsRepository implements CardsRepositoryInterface {
 
   @override
   GameCard deleteCard(GameCard card) {
-    final hasBeenDeleted = db.cardDtos.deleteSync(card.id);
+    final hasBeenDeleted = db.writeTxnSync(() => db.cardDtos.deleteSync(card.id));
     if (!hasBeenDeleted) throw UnableToDeleteException(card);
 
     return card;
@@ -32,7 +36,7 @@ final class CardsRepository implements CardsRepositoryInterface {
 
   GameCard _putCard(GameCardForm form) {
     final dto = form.toDto();
-    final id = db.cardDtos.putSync(dto);
+    final id = db.writeTxnSync(() => db.cardDtos.putSync(dto));
     return dto.toEntity(id);
   }
 }
