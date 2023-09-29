@@ -23,13 +23,9 @@ class CardDialog extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useRef(GlobalKey<FormState>());
-    final form = useState(
-      GameCardForm(
-        description: card?.contents ?? '',
-        rating: card?.eval ?? 0,
-        type: card?.type ?? CardType.white,
-      ),
-    );
+    final controller = useTextEditingController(text: card?.contents);
+    final rating = useState(card?.eval);
+    final type = useState(card?.type);
 
     String? validation(String? value) {
       if (value == null || value.isEmpty) return 'Campo obbligatorio';
@@ -48,11 +44,16 @@ class CardDialog extends HookConsumerWidget {
     }
 
     void saveCard() {
+      final form = GameCardForm(
+        description: controller.text,
+        rating: rating.value!,
+        type: type.value!,
+      );
       switch (mode) {
         case CardMode.newCard:
-          ref.read(cardsControllerProvider.notifier).addCard(form.value);
+          ref.read(cardsControllerProvider.notifier).addCard(form);
         case CardMode.editCard:
-          ref.read(cardsControllerProvider.notifier).editCard(form.value);
+          ref.read(cardsControllerProvider.notifier).editCard(form);
       }
 
       context.pop();
@@ -66,7 +67,7 @@ class CardDialog extends HookConsumerWidget {
             Padding(
               padding: const EdgeInsets.all(8),
               child: TextFormField(
-                onChanged: (value) => form.value.description = value,
+                controller: controller,
                 validator: (value) => validation(value?.trim()),
                 textInputAction: TextInputAction.next,
                 keyboardType: TextInputType.multiline,
@@ -86,9 +87,9 @@ class CardDialog extends HookConsumerWidget {
                       Icons.star,
                       color: Colors.amber,
                     ),
-                    initialRating: form.value.rating,
+                    initialRating: rating.value ?? 0,
                     allowHalfRating: true,
-                    onRatingUpdate: (value) => form.value.rating = value,
+                    onRatingUpdate: (value) => rating.value = value,
                   ),
                 ],
               ),
@@ -99,14 +100,14 @@ class CardDialog extends HookConsumerWidget {
                 RadioListTile<CardType>(
                   title: const Text('White'),
                   value: CardType.white,
-                  groupValue: form.value.type,
-                  onChanged: (value) => form.value.type = value!,
+                  groupValue: type.value,
+                  onChanged: (value) => type.value = value,
                 ),
                 RadioListTile<CardType>(
                   title: const Text('Black'),
                   value: CardType.black,
-                  groupValue: form.value.type,
-                  onChanged: (value) => form.value.type = value!,
+                  groupValue: type.value,
+                  onChanged: (value) => type.value = value,
                 ),
               ],
             ),
