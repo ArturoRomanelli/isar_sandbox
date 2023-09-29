@@ -1,5 +1,6 @@
 import 'package:isar/isar.dart';
 
+import '../../../shared/domain/errors/unable_to_delete_exception.dart';
 import '../../domain/adapters/card_adapter.dart';
 import '../../domain/entities/game_card.dart';
 import '../../domain/entities/game_card_form.dart';
@@ -17,7 +18,19 @@ final class CardsRepository implements CardsRepositoryInterface {
   }
 
   @override
-  GameCard saveCard(GameCardForm form) {
+  GameCard saveCard(GameCardForm form) => _putCard(form);
+  @override
+  GameCard editCard(GameCardForm form) => _putCard(form);
+
+  @override
+  GameCard deleteCard(GameCard card) {
+    final hasBeenDeleted = db.cardDtos.deleteSync(card.id);
+    if (!hasBeenDeleted) throw UnableToDeleteException(card);
+
+    return card;
+  }
+
+  GameCard _putCard(GameCardForm form) {
     final dto = form.toDto();
     final id = db.cardDtos.putSync(dto);
     return dto.toEntity(id);

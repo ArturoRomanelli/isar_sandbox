@@ -20,4 +20,18 @@ final class CardsController extends _$CardsController {
     final card = _repository.saveCard(form);
     state = [...state, card];
   }
+
+  void editCard(GameCardForm form) {
+    final card = _repository.editCard(form);
+    state = [
+      ...state.map((e) => card.id == e.id ? card : e),
+    ];
+  }
+
+  void deleteCard(GameCard card) {
+    final deleted = _repository.deleteCard(card);
+    state = [
+      ...state.where((element) => element.id != deleted.id),
+    ];
+  }
 }

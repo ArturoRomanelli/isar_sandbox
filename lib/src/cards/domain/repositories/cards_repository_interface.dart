@@ -17,4 +17,6 @@ CardsRepositoryInterface cardsRepository(CardsRepositoryRef ref) {
 abstract interface class CardsRepositoryInterface {
   List<GameCard> getCards();
   GameCard saveCard(GameCardForm form);
+  GameCard editCard(GameCardForm form);
+  GameCard deleteCard(GameCard card);
 }

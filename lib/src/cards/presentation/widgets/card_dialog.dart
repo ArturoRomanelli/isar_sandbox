@@ -4,6 +4,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../shared/domain/errors/unable_to_delete_exception.dart';
 import '../../domain/entities/game_card.dart';
 import '../../domain/entities/game_card_form.dart';
 import '../../domain/enum/card_mode.dart';
@@ -16,7 +17,6 @@ class CardDialog extends HookConsumerWidget {
     super.key,
     this.card,
   });
-
   final CardMode mode;
   final GameCard? card;
 
@@ -37,25 +37,22 @@ class CardDialog extends HookConsumerWidget {
     }
 
     void deleteCard() {
-      // TODO
-      // await isar.writeTxn(() async {
-      //   await isar.cardDtos.delete(id);
-      // });
-      // ref.read(cardsControllerProvider.notifier).deleteCard(form);
-      context.pop();
+      try {
+        ref.read(cardsControllerProvider.notifier).deleteCard(card!);
+        context.pop();
+      } on UnableToDeleteException {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Operazione in errore')),
+        );
+      }
     }
 
     void saveCard() {
-      try {
-        switch (mode) {
-          case CardMode.newCard:
-            ref.read(cardsControllerProvider.notifier).addCard(form.value);
-          case CardMode.editCard:
-          // TODO
-          // ref.read(cardsControllerProvider.notifier).editCard(form.value);
-        }
-      } on Exception {
-        // show some sort of errors..?
+      switch (mode) {
+        case CardMode.newCard:
+          ref.read(cardsControllerProvider.notifier).addCard(form.value);
+        case CardMode.editCard:
+          ref.read(cardsControllerProvider.notifier).editCard(form.value);
       }
 
       context.pop();
