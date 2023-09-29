@@ -39,7 +39,11 @@ class CardDialog extends HookConsumerWidget {
       return null;
     }
 
-    // Future<void> deleteCard(){};
+    Future<void> deleteCard(int id) async {
+      await isar.writeTxn(() async {
+        await isar.cardDtos.delete(id);
+      });
+    }
 
     Future<void> saveCard({
       required String contents,
@@ -135,7 +139,13 @@ class CardDialog extends HookConsumerWidget {
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
+                    await saveCard(
+                      contents: textController.text,
+                      eval: rating.value,
+                      color: colors.value,
+                    );
+                    if (!context.mounted) return;
                     context.pop();
                   },
                   child: const Text('Modifica'),
@@ -145,8 +155,9 @@ class CardDialog extends HookConsumerWidget {
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: ElevatedButton(
-                  onPressed: () {
-                    // deleteCard();
+                  onPressed: () async {
+                    await deleteCard(card!.id);
+                    if (!context.mounted) return;
                     context.pop();
                   },
                   child: const Text('Elimina'),
