@@ -1,4 +1,0 @@
-enum CardTypeDto {
-  black,
-  white,
-}

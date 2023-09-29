@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enum/card_type.dart';
 
 part 'game_card.freezed.dart';
 
@@ -9,6 +10,6 @@ class GameCard with _$GameCard {
     required int id,
     required String contents,
     required double eval,
-    required Color color,
+    required CardType type,
   }) = _GameCard;
 }

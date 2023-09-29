@@ -19,12 +19,12 @@ class GameCardWidget extends HookWidget {
     final rating = useState<double>(0);
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: card.color,
+      color: card.type.color,
       child: Padding(
         padding: const EdgeInsets.all(8),
         child: InkWell(
           onTap: () {
-            showDialog(
+            showDialog<void>(
               context: context,
               builder: (_) => CardDialog(
                 mode: CardMode.editCard,
@@ -36,7 +36,7 @@ class GameCardWidget extends HookWidget {
             children: [
               Text(
                 card.contents,
-                style: TextStyle(color: card.color == Colors.black ? Colors.white : Colors.black),
+                style: TextStyle(color: card.type.color),
               ),
               const Spacer(),
               RatingBar.builder(
