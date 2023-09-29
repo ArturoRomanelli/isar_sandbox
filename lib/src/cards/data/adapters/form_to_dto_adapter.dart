@@ -4,9 +4,9 @@ import '../models/card_dto.dart';
 extension FormToDtoAdapter on GameCardForm {
   CardDto toDto() {
     return CardDto(
-      contents: description!,
-      eval: rating!,
-      type: type!.code,
+      contents: description,
+      eval: rating,
+      type: type.code,
     );
   }
 }
