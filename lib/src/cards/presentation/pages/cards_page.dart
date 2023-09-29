@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:isar/isar.dart';
 
-import '../../../../clients/local_client.dart';
-import '../../data/models/card_dto.dart';
-import '../../domain/adapters/card_adapter.dart';
 import '../../domain/enum/card_mode.dart';
+import '../controllers/cards_controller.dart';
 import '../widgets/card_dialog.dart';
 import '../widgets/game_card_widget.dart';
 
@@ -14,17 +11,7 @@ class CardsPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isar = ref.watch(localDbProvider);
-
-    final cardList = isar.cardDtos.where().findAllSync();
-
-    final cardWidgets = [
-      ...cardList.map((dto) => dto.toEntity()).map(
-            (card) => GameCardWidget(
-              card: card,
-            ),
-          ),
-    ];
+    final cardList = ref.watch(cardsControllerProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -32,7 +19,9 @@ class CardsPage extends HookConsumerWidget {
       ),
       body: GridView.count(
         crossAxisCount: 2,
-        children: cardWidgets,
+        children: [
+          for (final card in cardList) GameCardWidget(card: card),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.redAccent,
@@ -41,7 +30,7 @@ class CardsPage extends HookConsumerWidget {
           color: Colors.white,
         ),
         onPressed: () {
-          showDialog(
+          showDialog<void>(
             context: context,
             builder: (_) => const CardDialog(mode: CardMode.newCard),
           );
