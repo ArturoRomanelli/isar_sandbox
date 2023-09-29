@@ -8,7 +8,7 @@ part 'cards_local_source.g.dart';
 
 @riverpod
 CardsLocalSource cardsLocalSource(CardsLocalSourceRef ref) {
-  final isar = ref.watch(localDbProvider.select((value) => value.requireValue));
+  final isar = ref.watch(localDbProvider);
   return CardsLocalSource(isar);
 }
 
