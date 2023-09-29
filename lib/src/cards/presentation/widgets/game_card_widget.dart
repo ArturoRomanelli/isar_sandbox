@@ -46,6 +46,7 @@ class GameCardWidget extends HookWidget {
                   color: Colors.amber,
                 ),
                 allowHalfRating: true,
+                ignoreGestures: true,
                 initialRating: card.eval,
                 onRatingUpdate: (value) {
                   rating.value = value;
