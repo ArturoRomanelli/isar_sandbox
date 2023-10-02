@@ -4,11 +4,12 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../../clients/local_client.dart';
-import '../../data/models/card_dto.dart';
-import '../../data/models/card_type_dto.dart';
+import '../../../shared/domain/errors/unable_to_delete_exception.dart';
 import '../../domain/entities/game_card.dart';
+import '../../domain/entities/game_card_form.dart';
 import '../../domain/enum/card_mode.dart';
+import '../../domain/enum/card_type.dart';
+import '../controllers/cards_controller.dart';
 
 class CardDialog extends HookConsumerWidget {
   const CardDialog({
@@ -16,52 +17,46 @@ class CardDialog extends HookConsumerWidget {
     super.key,
     this.card,
   });
-
   final CardMode mode;
   final GameCard? card;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isar = ref.watch(localDbProvider);
-    final textController = useTextEditingController();
     final formKey = useRef(GlobalKey<FormState>());
-    final rating = useState<double>(0);
-    final colors = useState<Color>(Colors.white);
+    final controller = useTextEditingController(text: card?.contents);
+    final rating = useState(card?.eval);
+    final type = useState(card?.type);
 
-    if (mode == CardMode.editCard) {
-      textController.text = card!.contents;
-      rating.value = card!.eval;
-      colors.value = card!.color;
-    }
-
-    String? _validation(String? value) {
+    String? validation(String? value) {
       if (value == null || value.isEmpty) return 'Campo obbligatorio';
       return null;
     }
 
-    Future<void> deleteCard(int id) async {
-      await isar.writeTxn(() async {
-        await isar.cardDtos.delete(id);
-      });
+    void deleteCard() {
+      try {
+        ref.read(cardsControllerProvider.notifier).deleteCard(card!);
+        context.pop();
+      } on UnableToDeleteException {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Operazione in errore')),
+        );
+      }
     }
 
-    Future<void> saveCard({
-      required String contents,
-      required double eval,
-      required Color color,
-    }) async {
-      final newCard = CardDto(
-        contents: contents,
-        eval: eval,
-        type: switch (color) {
-          Colors.white => CardTypeDto.white,
-          Colors.black => CardTypeDto.black,
-          _ => throw Exception('Color not found'),
-        },
+    void saveCard() {
+      final form = GameCardForm(
+        description: controller.text,
+        rating: rating.value!,
+        type: type.value!,
       );
-      await isar.writeTxn(() async {
-        await isar.cardDtos.put(newCard);
-      });
+      switch (mode) {
+        case CardMode.newCard:
+          ref.read(cardsControllerProvider.notifier).addCard(form);
+        case CardMode.editCard:
+          ref.read(cardsControllerProvider.notifier).editCard(form);
+      }
+
+      context.pop();
     }
 
     return Dialog.fullscreen(
@@ -72,8 +67,8 @@ class CardDialog extends HookConsumerWidget {
             Padding(
               padding: const EdgeInsets.all(8),
               child: TextFormField(
-                validator: (value) => _validation(value?.trim()),
-                controller: textController,
+                controller: controller,
+                validator: (value) => validation(value?.trim()),
                 textInputAction: TextInputAction.next,
                 keyboardType: TextInputType.multiline,
                 maxLines: 4,
@@ -92,11 +87,9 @@ class CardDialog extends HookConsumerWidget {
                       Icons.star,
                       color: Colors.amber,
                     ),
-                    initialRating: rating.value,
+                    initialRating: rating.value ?? 0,
                     allowHalfRating: true,
-                    onRatingUpdate: (value) {
-                      rating.value = value;
-                    },
+                    onRatingUpdate: (value) => rating.value = value,
                   ),
                 ],
               ),
@@ -104,72 +97,43 @@ class CardDialog extends HookConsumerWidget {
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                RadioListTile<Color>(
+                RadioListTile<CardType>(
                   title: const Text('White'),
-                  value: Colors.white,
-                  groupValue: colors.value,
-                  onChanged: (value) => colors.value = value!,
+                  value: CardType.white,
+                  groupValue: type.value,
+                  onChanged: (value) => type.value = value,
                 ),
-                RadioListTile<Color>(
+                RadioListTile<CardType>(
                   title: const Text('Black'),
-                  value: Colors.black,
-                  groupValue: colors.value,
-                  onChanged: (value) => colors.value = value!,
+                  value: CardType.black,
+                  groupValue: type.value,
+                  onChanged: (value) => type.value = value,
                 ),
               ],
             ),
-            if (mode == CardMode.newCard)
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await saveCard(
-                      contents: textController.text,
-                      eval: rating.value,
-                      color: colors.value,
-                    );
-                    if (!context.mounted) return;
-
-                    context.pop();
-                  },
-                  child: const Text('Conferma'),
-                ),
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: ElevatedButton(
+                onPressed: saveCard,
+                child: switch (mode) {
+                  CardMode.newCard => const Text('Conferma'),
+                  CardMode.editCard => const Text('Modifica'),
+                },
               ),
-            if (mode == CardMode.editCard)
+            ),
+            if (mode case CardMode.editCard)
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: ElevatedButton(
-                  onPressed: () async {
-                    await saveCard(
-                      contents: textController.text,
-                      eval: rating.value,
-                      color: colors.value,
-                    );
-                    if (!context.mounted) return;
-                    context.pop();
-                  },
-                  child: const Text('Modifica'),
-                ),
-              ),
-            if (mode == CardMode.editCard)
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await deleteCard(card!.id);
-                    if (!context.mounted) return;
-                    context.pop();
-                  },
+                  onPressed: deleteCard,
                   child: const Text('Elimina'),
                 ),
               ),
             Padding(
               padding: const EdgeInsets.all(8),
               child: ElevatedButton(
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(
-                    Theme.of(context).colorScheme.primaryContainer,
-                  ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                 ),
                 onPressed: context.pop,
                 child: const Text('Annulla'),

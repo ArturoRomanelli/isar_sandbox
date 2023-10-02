@@ -1,7 +1,5 @@
 import 'package:isar/isar.dart';
 
-import 'card_type_dto.dart';
-
 part 'card_dto.g.dart';
 
 @collection
@@ -16,6 +14,5 @@ class CardDto {
   final Id id;
   final String contents;
   final double eval;
-  @enumerated
-  final CardTypeDto type;
+  final int type;
 }
